@@ -1,24 +1,41 @@
 package com.jeremy.expense_tracker.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.jeremy.expense_tracker.repository.UserRepository;
-
+import com.jeremy.expense_tracker.dto.RegisterRequest;
+import com.jeremy.expense_tracker.dto.UserResponse;
 import com.jeremy.expense_tracker.model.User;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository){
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder){
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public User saveUser(User user){
-        return userRepository.save(user);
+    public UserResponse registerUser(RegisterRequest user_request){
+
+        if (userRepository.findByEmail(user_request.getEmail()).isPresent()){
+            throw new RuntimeException("Email already exits!");
+        }
+        User user = new User();
+        user.setFirstName(user_request.getFirstName());
+        user.setLastName(user_request.getLastName());
+        user.setEmail(user_request.getEmail());
+        user.setPassword(passwordEncoder.encode(user_request.getPassword()));
+        user.setCreatedAt(LocalDateTime.now());
+
+        User savedUser = userRepository.save(user);
+        return new UserResponse(savedUser.getId(), savedUser.getFirstName(), savedUser.getLastName(), savedUser.getEmail(), savedUser.getCreatedAt()); 
     }
 
     public List<User> getAllUsers(){
