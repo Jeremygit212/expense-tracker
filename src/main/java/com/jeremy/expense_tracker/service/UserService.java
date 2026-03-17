@@ -1,6 +1,7 @@
 package com.jeremy.expense_tracker.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,7 +39,25 @@ public class UserService {
         return new UserResponse(savedUser.getId(), savedUser.getFirstName(), savedUser.getLastName(), savedUser.getEmail(), savedUser.getCreatedAt()); 
     }
 
-    public List<User> getAllUsers(){
-        return userRepository.findAll();
+    public List<UserResponse> getAllUsers(){
+
+        List<User> users = userRepository.findAll();
+        
+        List<UserResponse> userResponses = new ArrayList<>();
+
+        for (User user : users) {
+            UserResponse response = new UserResponse(
+            user.getId(),
+            user.getFirstName(),
+            user.getLastName(),
+            user.getEmail(),
+            user.getCreatedAt()
+            );
+        userResponses.add(response);
+
+        }   
+
+        return userResponses;
     }
+        
 }
