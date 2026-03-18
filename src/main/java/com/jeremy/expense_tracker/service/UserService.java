@@ -4,10 +4,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.jeremy.expense_tracker.repository.UserRepository;
+import com.jeremy.expense_tracker.dto.LoginRequest;
+import com.jeremy.expense_tracker.dto.LoginResponse;
 import com.jeremy.expense_tracker.dto.RegisterRequest;
 import com.jeremy.expense_tracker.dto.UserResponse;
 import com.jeremy.expense_tracker.model.User;
@@ -26,7 +30,7 @@ public class UserService {
     public UserResponse registerUser(RegisterRequest user_request){
 
         if (userRepository.findByEmail(user_request.getEmail()).isPresent()){
-            throw new RuntimeException("Email already exits!");
+            throw new RuntimeException("Email already exists!");
         }
         User user = new User();
         user.setFirstName(user_request.getFirstName());
@@ -54,10 +58,21 @@ public class UserService {
             user.getCreatedAt()
             );
         userResponses.add(response);
-
         }   
-
         return userResponses;
+    }
+
+    public LoginResponse loginUser(LoginRequest request){
+        User user = userRepository.findByEmail(request.getEmail())
+        .orElseThrow(()-> new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Invalid email or password"));
+
+        boolean matches = passwordEncoder.matches(request.getPassword(), user.getPassword());
+    
+        if (!matches){
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Invalid email or password");
+        }
+
+        return new LoginResponse("Login Successful");
     }
         
 }
