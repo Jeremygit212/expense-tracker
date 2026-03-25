@@ -1,5 +1,6 @@
 package com.jeremy.expense_tracker.service;
 
+import com.jeremy.expense_tracker.security.JwtService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +20,14 @@ import com.jeremy.expense_tracker.model.User;
 @Service
 public class UserService {
 
+    private final JwtService jwtService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder){
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public UserResponse registerUser(RegisterRequest user_request){
@@ -72,7 +75,9 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Invalid email or password");
         }
 
-        return new LoginResponse("Login Successful");
+        String token = jwtService.generateToken(user.getEmail());
+
+        return new LoginResponse(token);
     }
         
 }
